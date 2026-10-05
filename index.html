@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f3ec">
+  <title>Pausa — un momento para enfocarte</title>
+  <style>
+    :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #252a27; background: #f6f3ec; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 85% 15%, #e3e9d9 0, transparent 32%), radial-gradient(circle at 5% 95%, #f3deca 0, transparent 38%), #f6f3ec; }
+    button { font: inherit; cursor: pointer; }
+    .shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; max-width: 1200px; margin: auto; padding: 32px clamp(20px, 5vw, 72px) 24px; }
+    header, footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -.05em; font-size: 1.55rem; }
+    .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 12px; color: white; background: #526b54; font-size: 1.25rem; line-height: 1; }
+    .header-note, footer { color: #767a71; font-size: .86rem; }
+    main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 480px); align-items: center; gap: clamp(36px, 7vw, 110px); padding: 65px 0 80px; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .2em; color: #6e876f; font-size: .76rem; font-weight: 800; }
+    h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(3.6rem, 7.5vw, 7.2rem); line-height: .98; font-weight: 400; letter-spacing: -.075em; margin: 24px 0; }
+    h1 em { color: #68886d; font-weight: 400; }
+    .intro { max-width: 440px; color: #6a706a; font-size: 1.14rem; line-height: 1.7; margin: 0; }
+    .details { display: flex; gap: 34px; margin-top: 58px; }
+    .detail { border-top: 1px solid #bfc8b9; padding-top: 15px; min-width: 130px; }
+    .detail strong { display: block; font-size: 1.18rem; margin-bottom: 5px; }
+    .detail span { color: #777c74; font-size: .85rem; }
+    .card { background: #fffefa; border: 1px solid rgba(67,81,65,.08); border-radius: 32px; box-shadow: 0 28px 70px rgba(51,62,48,.09); padding: clamp(24px, 4vw, 42px); text-align: center; }
+    .modes { display: flex; gap: 5px; padding: 5px; background: #f0f1eb; border-radius: 100px; }
+    .mode { flex: 1; border: 0; background: transparent; border-radius: 100px; padding: 11px 8px; color: #777e75; font-size: .87rem; font-weight: 700; }
+    .mode[aria-pressed="true"] { background: #fffefa; color: #334b38; box-shadow: 0 2px 8px rgba(37,42,39,.08); }
+    .timer { width: min(100%, 310px); aspect-ratio: 1; margin: 34px auto 28px; position: relative; display: grid; place-items: center; }
+    .timer svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+    .track, .progress { fill: none; stroke-width: 7; }
+    .track { stroke: #edf0e9; }
+    .progress { stroke: #78987a; stroke-linecap: round; transition: stroke-dashoffset .4s linear; }
+    .timer-inner { z-index: 1; }
+    .timer-label { color: #7f8c7e; text-transform: uppercase; font-size: .74rem; font-weight: 800; letter-spacing: .17em; }
+    .time { display: block; font-variant-numeric: tabular-nums; font-size: clamp(4.2rem, 8vw, 5.7rem); line-height: 1.25; font-weight: 500; letter-spacing: -.075em; }
+    .message { margin: 0 0 25px; color: #758074; min-height: 1.5em; }
+    .actions { display: flex; justify-content: center; gap: 10px; }
+    .primary, .secondary { border-radius: 100px; min-height: 52px; font-weight: 750; }
+    .primary { border: 1px solid #425e47; background: #425e47; color: white; min-width: 158px; padding: 0 28px; }
+    .primary:hover { background: #344e39; }
+    .secondary { border: 1px solid #dce3d9; background: #fffefa; color: #536556; padding: 0 24px; }
+    .secondary:hover { background: #f2f5ef; }
+    button:focus-visible { outline: 3px solid #cf945c; outline-offset: 3px; }
+    footer { border-top: 1px solid #dce1d8; padding-top: 20px; }
+    @media (max-width: 800px) { .shell { padding-top: 22px; } main { grid-template-columns: 1fr; gap: 45px; padding: 70px 0; } h1 { max-width: 560px; } .details { margin-top: 30px; } .card { max-width: 500px; width: 100%; margin: auto; } }
+    @media (max-width: 480px) { .header-note { display: none; } main { padding: 56px 0; } .details { gap: 18px; } .detail { min-width: 0; flex: 1; } .timer { margin: 25px auto 18px; } footer span:last-child { display: none; } }
+    @media (prefers-reduced-motion: reduce) { .progress { transition: none; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand"><span class="brand-mark" aria-hidden="true">✳</span> pausa.</div>
+      <span class="header-note">Un espacio para volver a lo importante</span>
+    </header>
+    <main>
+      <section aria-labelledby="title">
+        <div class="eyebrow">Tiempo para ti</div>
+        <h1 id="title">Haz espacio<br>para <em>enfocarte.</em></h1>
+        <p class="intro">Una tarea a la vez. Elige un momento de concentración, respira y deja que el tiempo haga su parte.</p>
+        <div class="details" aria-label="Cómo funciona">
+          <div class="detail"><strong>01 / Enfoca</strong><span>Dedica 25 minutos</span></div>
+          <div class="detail"><strong>02 / Descansa</strong><span>Toma 5 para volver</span></div>
+        </div>
+      </section>
+      <section class="card" aria-label="Temporizador">
+        <div class="modes" role="group" aria-label="Tipo de sesión">
+          <button class="mode" type="button" data-mode="focus" aria-pressed="true">Concentración</button>
+          <button class="mode" type="button" data-mode="break" aria-pressed="false">Descanso</button>
+        </div>
+        <div class="timer">
+          <svg viewBox="0 0 300 300" aria-hidden="true"><circle class="track" cx="150" cy="150" r="137"></circle><circle id="progress" class="progress" cx="150" cy="150" r="137"></circle></svg>
+          <div class="timer-inner"><span id="timer-label" class="timer-label">Momento de enfoque</span><time id="time" class="time" role="timer" aria-live="off">25:00</time></div>
+        </div>
+        <p id="message" class="message" role="status" aria-live="polite">Todo empieza con un pequeño paso.</p>
+        <div class="actions">
+          <button id="toggle" class="primary" type="button">Comenzar</button>
+          <button id="reset" class="secondary" type="button">Reiniciar</button>
+        </div>
+      </section>
+    </main>
+    <footer><span>Hecho para hacer menos, mejor.</span><span>Respira. Ya estás aquí.</span></footer>
+  </div>
+  <script>
+    const durations = { focus: 25 * 60, break: 5 * 60 };
+    const circumference = 2 * Math.PI * 137;
+    const progress = document.querySelector('#progress');
+    const time = document.querySelector('#time');
+    const label = document.querySelector('#timer-label');
+    const message = document.querySelector('#message');
+    const toggle = document.querySelector('#toggle');
+    const modes = [...document.querySelectorAll('.mode')];
+    let mode = 'focus';
+    let remaining = durations[mode];
+    let deadline = null;
+    let interval = null;
+
+    progress.style.strokeDasharray = circumference;
+    function render() {
+      const seconds = Math.ceil(remaining);
+      const minutesText = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const secondsText = String(seconds % 60).padStart(2, '0');
+      time.textContent = `${minutesText}:${secondsText}`;
+      time.setAttribute('datetime', `PT${seconds}S`);
+      progress.style.strokeDashoffset = circumference * (1 - remaining / durations[mode]);
+      document.title = `${time.textContent} · Pausa`;
+    }
+    function stop() {
+      clearInterval(interval);
+      interval = null;
+      deadline = null;
+      toggle.textContent = 'Continuar';
+    }
+    function tick() {
+      remaining = Math.max(0, (deadline - Date.now()) / 1000);
+      render();
+      if (remaining === 0) {
+        stop();
+        toggle.textContent = 'Comenzar de nuevo';
+        message.textContent = mode === 'focus' ? 'Buen trabajo. Es hora de descansar.' : 'Descanso completo. Puedes volver cuando quieras.';
+      }
+    }
+    toggle.addEventListener('click', () => {
+      if (interval) {
+        tick();
+        if (interval) { stop(); message.textContent = 'Tómate tu tiempo. Aquí seguimos.'; }
+        return;
+      }
+      if (remaining === 0) remaining = durations[mode];
+      deadline = Date.now() + remaining * 1000;
+      interval = setInterval(tick, 250);
+      toggle.textContent = 'Pausar';
+      message.textContent = mode === 'focus' ? 'Una cosa a la vez.' : 'Suelta los hombros y respira.';
+      render();
+    });
+    document.querySelector('#reset').addEventListener('click', () => {
+      stop();
+      remaining = durations[mode];
+      toggle.textContent = 'Comenzar';
+      message.textContent = 'Todo empieza con un pequeño paso.';
+      render();
+    });
+    modes.forEach(button => button.addEventListener('click', () => {
+      if (button.dataset.mode === mode) return;
+      stop();
+      mode = button.dataset.mode;
+      remaining = durations[mode];
+      modes.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      label.textContent = mode === 'focus' ? 'Momento de enfoque' : 'Momento de descanso';
+      toggle.textContent = 'Comenzar';
+      message.textContent = mode === 'focus' ? 'Todo empieza con un pequeño paso.' : 'Una pausa también es avanzar.';
+      render();
+    }));
+    render();
+  </script>
+</body>
+</html>
