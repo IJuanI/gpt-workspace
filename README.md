@@ -4,7 +4,7 @@ Juego web 2D para celular, tablet y computadora. Está hecho con Canvas, JavaScr
 
 ## Cómo jugar
 
-Sirve los archivos con un servidor local o estático HTTPS (por ejemplo, `python3 -m http.server 8000`) y abre su dirección local. En un celular o tablet, gira el dispositivo a horizontal. En escritorio puedes usar el mouse.
+Puedes abrir `index.html` directamente o servir los archivos con HTTPS (por ejemplo, `python3 -m http.server 8000` para probarlos en tu computadora). El juego funciona en ambos casos; el modo offline instalable necesita HTTPS o localhost. En un celular o tablet, gira el dispositivo a horizontal. En escritorio puedes usar el mouse.
 
 - **Saltos por los techos:** toca para saltar; vuelve a tocar en el aire para el doble salto. Recoge estrellas. Un choque resta una estrella y reduce brevemente la velocidad.
 - **Camión espacial:** toca una de las tres franjas horizontales para cambiar de carril. Recoge estrellas y esquiva meteoritos.

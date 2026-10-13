@@ -1,9 +1,8 @@
-import { createGameMode } from './modes.js';
-
+(() => {
 const WIDTH = 960;
 const HEIGHT = 540;
 
-export class GameEngine {
+class GameEngine {
   constructor(canvas, hooks = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
@@ -26,7 +25,7 @@ export class GameEngine {
 
   start(modeId, config) {
     this.cancelFrame();
-    this.mode = createGameMode(modeId, config, this.hooks);
+    this.mode = window.createGameMode(modeId, config, this.hooks);
     this.elapsed = 0;
     this.remaining = config.duration || 0;
     this.paused = false;
@@ -109,5 +108,5 @@ export class GameEngine {
     this.publishStatus();
   }
 }
-
-export { WIDTH, HEIGHT };
+window.GameEngine = GameEngine;
+})();

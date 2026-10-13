@@ -1,6 +1,5 @@
-import { GameEngine } from './game.js';
-import { SoundKit } from './sound.js';
-
+(() => {
+const { GameEngine, SoundKit } = window;
 const $ = selector => document.querySelector(selector);
 const homeScreen = $('#home-screen');
 const gameScreen = $('#game-screen');
@@ -187,3 +186,4 @@ for (const dialog of [pauseDialog, resultDialog]) dialog.addEventListener('cance
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
+})();

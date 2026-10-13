@@ -1,3 +1,4 @@
+(() => {
 const WIDTH = 960;
 const HEIGHT = 540;
 const COLORS = { red: '#ef6677', blue: '#5d83e2', green: '#55b981' };
@@ -378,9 +379,12 @@ function drawSortItem(ctx, item, dragging) {
   ctx.restore();
 }
 
-export function createGameMode(id, config, hooks) {
+function createGameMode(id, config, hooks) {
   if (id === 'rooftop') return makeRooftop(config, hooks);
   if (id === 'space') return makeTruck(config, hooks);
   if (id === 'sorting') return makeSorting(config, hooks);
   throw new Error(`Modo desconocido: ${id}`);
 }
+
+window.createGameMode = createGameMode;
+})();

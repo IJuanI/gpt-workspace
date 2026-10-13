@@ -1,4 +1,5 @@
-export class SoundKit {
+(() => {
+class SoundKit {
   constructor() {
     this.musicOn = true;
     this.effectsOn = true;
@@ -89,3 +90,6 @@ export class SoundKit {
     this.context = null;
   }
 }
+
+window.SoundKit = SoundKit;
+})();
