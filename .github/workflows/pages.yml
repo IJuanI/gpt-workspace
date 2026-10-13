@@ -70,8 +70,10 @@ jobs:
             fi
             sleep 10
           done
+          printf 'status=%s\nfinal_url=%s\n' "$status" "$final_url" >> "$GITHUB_OUTPUT"
           printf '| URL esperada | URL final | HTTP |\n| --- | --- | --- |\n| %s | %s | %s |\n' "$expected" "$final_url" "$status" >> "$GITHUB_STEP_SUMMARY"
           if [ "$status" != '200' ] || [ "$final_url" != "$expected" ]; then
+            echo "::error title=Pages URL verification::Expected $expected, received HTTP $status at $final_url"
             echo "La URL estándar respondió HTTP $status y terminó en $final_url" >&2
             exit 1
           fi
