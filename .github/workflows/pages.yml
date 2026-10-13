@@ -29,15 +29,18 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const pages = await github.rest.repos.getPages({ owner, repo });
+            core.info(`Dominio antes de limpiar: ${pages.data.cname || '(ninguno)'}`);
             if (pages.data.cname) {
               await github.rest.repos.updateInformationAboutPagesSite({
                 owner,
                 repo,
-                cname: null,
+                cname: '',
               });
-              core.info(`Se quitó el dominio personalizado ${pages.data.cname}.`);
-            } else {
-              core.info('El sitio ya no tiene un dominio personalizado.');
+            }
+            const verified = await github.rest.repos.getPages({ owner, repo });
+            core.info(`Dominio después de limpiar: ${verified.data.cname || '(ninguno)'}`);
+            if (verified.data.cname) {
+              throw new Error(`GitHub Pages aún conserva el dominio ${verified.data.cname}.`);
             }
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
