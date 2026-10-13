@@ -16,7 +16,7 @@ La música y los efectos tienen interruptores independientes. El juego no necesi
 
 ## Publicación
 
-El workflow de GitHub Pages publica el sitio cuando se actualiza la rama `work` o se ejecuta manualmente. En la configuración del repositorio, selecciona **Settings → Pages → Build and deployment → GitHub Actions**. Una vez publicado, el enlace del sitio aparece en esa sección.
+El workflow de GitHub Pages publica el sitio cuando se actualiza la rama `work` o se ejecuta manualmente. En la configuración del repositorio, selecciona **Settings → Pages → Build and deployment → GitHub Actions**. El sitio está disponible en [https://ijuani.github.io/gpt-workspace/](https://ijuani.github.io/gpt-workspace/).
 
 ## Estructura
 

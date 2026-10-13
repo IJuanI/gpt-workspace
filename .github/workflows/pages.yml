@@ -18,7 +18,7 @@ jobs:
   publish:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: https://ijuani.github.io/gpt-workspace/
     runs-on: ubuntu-latest
     steps:
       - name: Descargar el repositorio
