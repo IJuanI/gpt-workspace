@@ -23,6 +23,22 @@ jobs:
     steps:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
+      - name: Quitar dominio personalizado anterior
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pages = await github.rest.repos.getPages({ owner, repo });
+            if (pages.data.cname) {
+              await github.rest.repos.updateInformationAboutPagesSite({
+                owner,
+                repo,
+                cname: null,
+              });
+              core.info(`Se quitó el dominio personalizado ${pages.data.cname}.`);
+            } else {
+              core.info('El sitio ya no tiene un dominio personalizado.');
+            }
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Preparar archivos del sitio
