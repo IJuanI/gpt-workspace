@@ -39,6 +39,7 @@ jobs:
             }
             const verified = await github.rest.repos.getPages({ owner, repo });
             core.info(`Dominio después de limpiar: ${verified.data.cname || '(ninguno)'}`);
+            core.notice(`Pages API cname=${verified.data.cname || '(ninguno)'}; html_url=${verified.data.html_url}`);
             if (verified.data.cname) {
               throw new Error(`GitHub Pages aún conserva el dominio ${verified.data.cname}.`);
             }
@@ -60,20 +61,21 @@ jobs:
         run: |
           set -u
           expected='https://ijuani.github.io/gpt-workspace/'
+          probe="${expected}?cache_check=${GITHUB_RUN_ID}"
           result=''
           for attempt in 1 2 3 4 5 6; do
-            result="$(curl --silent --show-error --location --max-time 20 --output /dev/null --write-out '%{http_code} %{url_effective}' "$expected" || true)"
+            result="$(curl --silent --show-error --location --max-time 20 --output /dev/null --write-out '%{http_code} %{url_effective}' "$probe" || true)"
             status="${result%% *}"
             final_url="${result#* }"
-            if [ "$status" = '200' ] && [ "$final_url" = "$expected" ]; then
+            if [ "$status" = '200' ] && [ "$final_url" = "$probe" ]; then
               break
             fi
             sleep 10
           done
           printf 'status=%s\nfinal_url=%s\n' "$status" "$final_url" >> "$GITHUB_OUTPUT"
-          printf '| URL esperada | URL final | HTTP |\n| --- | --- | --- |\n| %s | %s | %s |\n' "$expected" "$final_url" "$status" >> "$GITHUB_STEP_SUMMARY"
-          if [ "$status" != '200' ] || [ "$final_url" != "$expected" ]; then
-            echo "::error title=Pages URL verification::Expected $expected, received HTTP $status at $final_url"
+          printf '| URL de prueba | URL final | HTTP |\n| --- | --- | --- |\n| %s | %s | %s |\n' "$probe" "$final_url" "$status" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$status" != '200' ] || [ "$final_url" != "$probe" ]; then
+            echo "::error title=Pages URL verification::Expected $probe, received HTTP $status at $final_url"
             echo "La URL estándar respondió HTTP $status y terminó en $final_url" >&2
             exit 1
           fi
