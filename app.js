@@ -13,12 +13,14 @@ const modeInfo = {
   rooftop: { title: 'Saltos por los techos', description: 'Toca para saltar. Si vuelves a tocar en el aire, ¡haces un doble salto!', hint: 'Toca para saltar · Toca otra vez en el aire para el doble salto' },
   space: { title: 'Camión espacial', description: 'El camión tiene tres carriles. Toca el carril al que quieras moverte.', hint: 'Toca uno de los tres carriles para cambiar de rumbo' },
   sorting: { title: '¡Cada cosa en su caja!', description: 'Arrastra cada objeto a la caja de su mismo color.', hint: 'Arrastra cada objeto hasta la caja del mismo color' },
+  memory: { title: 'La banda de la Patota', description: 'Mira y escucha la secuencia. Después, toca a cada integrante en el mismo orden.', hint: '¡Mira la secuencia y luego toca los botones en ese orden!' },
 };
 
 const gameConfigs = {
   rooftop: { duration: 90, difficulty: 'suave' },
   space: { duration: 90, difficulty: 'suave' },
   sorting: { count: 15 },
+  memory: {},
 };
 
 let selectedMode = null;
@@ -29,7 +31,7 @@ let engine;
 function setupModeCards() {
   const buttons = [...document.querySelectorAll('.choose-button')];
   buttons.forEach((button, index) => {
-    if (!button.dataset.mode) button.dataset.mode = ['rooftop', 'space', 'sorting'][index];
+    if (!button.dataset.mode) button.dataset.mode = ['rooftop', 'space', 'sorting', 'memory'][index];
     button.addEventListener('click', () => openConfig(button.dataset.mode));
   });
 }
@@ -45,7 +47,7 @@ function openConfig(mode) {
     configFields.append(makeSelect('Cantidad de objetos', 'count', [
       ['10', '10 objetos · rapidito'], ['15', '15 objetos · recomendado'], ['20', '20 objetos'], ['30', '30 objetos · ¡todo un reto!'],
     ], String(gameConfigs.sorting.count)));
-  } else {
+  } else if (mode !== 'memory') {
     configFields.append(makeSelect('Duración de la partida', 'duration', [
       ['60', '1 minuto'], ['90', '1 minuto y medio'], ['120', '2 minutos'],
     ], String(gameConfigs[mode].duration)));
@@ -75,6 +77,7 @@ function makeSelect(label, key, options, selected) {
 function readConfig() {
   const data = new FormData($('#config-form'));
   if (selectedMode === 'sorting') return { count: Number(data.get('count')) || 15 };
+  if (selectedMode === 'memory') return {};
   return { duration: Number(data.get('duration')) || 90, difficulty: data.get('difficulty') || 'suave' };
 }
 
@@ -83,6 +86,7 @@ function createEngine() {
   engine = new GameEngine($('#game-canvas'), {
     jump: () => sound.effect('jump'), collect: () => sound.effect('collect'), hit: () => sound.effect('hit'),
     lane: () => sound.effect('lane'), pick: () => sound.effect('pick'), correct: () => sound.effect('correct'), wrong: () => sound.effect('wrong'),
+    note: index => sound.memoryNote(index),
     onStatus: updateHud,
     onFinish: (score, result) => finishGame(score, result),
   });
@@ -105,14 +109,15 @@ function startGame(mode = selectedMode, config = readConfig()) {
   sound.startMusic();
   if (!engine) createEngine();
   engine.start(mode, config);
-  updateHud({ remaining: config.duration ? config.duration : null, score: 0, progress: mode === 'sorting' ? `0/${config.count}` : null });
+  updateHud({ remaining: config.duration ? config.duration : null, score: 0, progress: mode === 'sorting' ? `0/${config.count}` : mode === 'memory' ? '1/5' : null });
 }
 
 function updateHud(status) {
   const isSort = activeMode === 'sorting';
-  $('#hud-left-label').textContent = isSort ? 'Objetos' : 'Tiempo';
+  const isMemory = activeMode === 'memory';
+  $('#hud-left-label').textContent = isSort ? 'Objetos' : isMemory ? 'Ronda' : 'Tiempo';
   $('#hud-score-label').textContent = isSort ? 'Puntos' : 'Estrellas';
-  $('#hud-left').textContent = isSort ? (status.progress || `0/${activeConfig?.count || 15}`) : formatTime(status.remaining || 0);
+  $('#hud-left').textContent = isSort ? (status.progress || `0/${activeConfig?.count || 15}`) : isMemory ? (status.progress || '1/5') : formatTime(status.remaining || 0);
   $('#hud-score').textContent = String(status.score ?? 0);
   $('.hud-star').textContent = isSort ? '●' : '✦';
 }
@@ -125,12 +130,12 @@ function formatTime(seconds) {
 function finishGame(score, result = {}) {
   engine?.setPaused(true);
   sound.stopMusic();
-  $('#result-title').textContent = activeMode === 'sorting' ? '¡Todo en su lugar!' : '¡Aventura completa!';
+  $('#result-title').textContent = activeMode === 'sorting' ? '¡Todo en su lugar!' : activeMode === 'memory' ? '¡La banda completa!' : '¡Aventura completa!';
   $('#result-message').textContent = result.message || '¡Lo hiciste genial!';
   $('#result-score-label').textContent = result.label || (activeMode === 'sorting' ? 'Puntos finales' : 'Estrellas juntadas');
   $('#result-score').textContent = String(score);
   $('#result-score-icon').textContent = result.icon || (activeMode === 'sorting' ? '●' : '✦');
-  $('#result-confetti').textContent = activeMode === 'sorting' ? '●　✦　●' : '✦　✧　✦';
+  $('#result-confetti').textContent = activeMode === 'sorting' ? '●　✦　●' : activeMode === 'memory' ? '♫　♪　♫' : '✦　✧　✦';
   resultDialog.showModal();
 }
 

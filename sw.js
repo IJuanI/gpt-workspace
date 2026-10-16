@@ -1,4 +1,4 @@
-const CACHE_NAME = 'la-patota-v1';
+const CACHE_NAME = 'la-patota-v2';
 const APP_FILES = [
   './', './index.html', './styles.css', './app.js', './game.js', './modes.js',
   './sound.js', './manifest.webmanifest', './icon.svg',

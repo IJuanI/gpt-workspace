@@ -379,10 +379,132 @@ function drawSortItem(ctx, item, dragging) {
   ctx.restore();
 }
 
+function makeMemory(hooks) {
+  const people = [
+    { name: 'Papá', kind: 'man', color: '#5d83e2', clothes: '#5687d8', hair: '#443849', skin: '#d99b72', instrument: '🎸', note: 0 },
+    { name: 'Mamá', kind: 'woman', color: '#f2c94c', clothes: '#e5ad48', hair: '#503b42', skin: '#e9b28b', instrument: '🎹', note: 1 },
+    { name: 'Nico', kind: 'boy', color: '#55b981', clothes: '#55b981', hair: '#443849', skin: '#c98763', instrument: '🥁', note: 2 },
+    { name: 'Lola', kind: 'girl', color: '#a277d2', clothes: '#a277d2', hair: '#67464c', skin: '#f0c29c', instrument: '🎺', note: 3 },
+    { name: 'Tomi', kind: 'boy', color: '#ee9b58', clothes: '#ee9b58', hair: '#553f36', skin: '#e8b58a', instrument: '🪇', note: 4 },
+  ];
+  const shuffled = people.map((_, i) => i);
+  for (let i = shuffled.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
+  const game = {
+    timed: false, score: 0, round: 1, sequence: [shuffled[0]], inputIndex: 0, showIndex: 0,
+    phase: 'show', timer: .65, active: -1, pulse: 0, message: '¡Mira y escucha!',
+    update(dt) {
+      this.pulse = Math.max(0, this.pulse - dt);
+      if (this.phase === 'input' && this.pulse === 0) this.active = -1;
+      if (this.phase === 'show') {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+          if (this.active >= 0) {
+            this.active = -1;
+            if (this.showIndex >= this.sequence.length) {
+              this.phase = 'input'; this.inputIndex = 0; this.message = '¡Ahora te toca!'; return;
+            }
+            this.timer = .28;
+          } else {
+            this.active = this.sequence[this.showIndex++];
+            hooks.note?.(this.active);
+            this.timer = .52;
+          }
+        }
+      } else if (this.phase === 'wrong' || this.phase === 'roundDone') {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+          if (this.phase === 'wrong') this.playSequence('¡Mira otra vez!');
+          else if (this.round >= 5) { this.phase = 'complete'; this.message = '¡La Patota tocó junta!'; }
+          else { this.round++; this.sequence.push(shuffled[this.round - 1]); this.playSequence('¡Se suma alguien más!'); }
+        }
+      }
+    },
+    playSequence(message) { this.phase = 'show'; this.showIndex = 0; this.active = -1; this.timer = .75; this.message = message; },
+    pointerDown(point) {
+      if (this.phase !== 'input' || point.y < 340) return;
+      const index = Math.max(0, Math.min(4, Math.floor(point.x / (WIDTH / 5))));
+      this.active = index; this.pulse = .2; hooks.note?.(index);
+      if (index !== this.sequence[this.inputIndex]) {
+        this.score = Math.max(0, this.score - 1);
+        this.phase = 'wrong'; this.timer = .85; this.active = -1; this.message = '¡Uy! Una estrella menos. Mira otra vez'; hooks.wrong?.(); return;
+      }
+      this.inputIndex++; this.score++; hooks.correct?.();
+      if (this.inputIndex === this.sequence.length) {
+        this.active = index; this.phase = 'roundDone'; this.timer = .85; this.message = this.round === 5 ? '¡Secuencia completa!' : '¡Muy bien!';
+      } else {
+        this.message = '¡Bien! Sigue la secuencia';
+      }
+    },
+    isComplete() { return this.phase === 'complete'; },
+    getProgress() { return `${this.round}/5`; },
+    getResult() { return { score: this.score, label: 'Estrellas finales', icon: '✦', message: '¡Qué buena memoria musical!' }; },
+    draw(ctx, elapsed) {
+      drawMemoryStage(ctx, elapsed, people, this.active, this.phase, this.round, this.message, this.inputIndex, this.sequence.length);
+    },
+  };
+  return game;
+}
+
+function drawMemoryStage(ctx, elapsed, people, active, phase, round, message, inputIndex, sequenceLength) {
+  const bg = ctx.createLinearGradient(0, 0, 0, HEIGHT); bg.addColorStop(0, '#292c62'); bg.addColorStop(.65, '#65578a'); bg.addColorStop(1, '#f5c77f');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  // luces de escenario
+  for (let i = 0; i < 5; i++) {
+    const x = 96 + i * 192;
+    ctx.fillStyle = `${people[i].color}20`; ctx.beginPath(); ctx.moveTo(x - 55, 0); ctx.lineTo(x + 55, 0); ctx.lineTo(x + 125, 330); ctx.lineTo(x - 125, 330); ctx.fill();
+  }
+  ctx.fillStyle = '#322c57'; ctx.fillRect(0, 0, 28, 345); ctx.fillRect(WIDTH - 28, 0, 28, 345);
+  softText(ctx, `RONDA ${round} DE 5`, 36, 33, 17, '#fff4c6', 'left', 950);
+  softText(ctx, message, WIDTH / 2, 36, 19, phase === 'wrong' ? '#ffcf70' : '#fff', 'center', 950);
+  ctx.fillStyle = phase === 'wrong' ? '#675168' : '#473761'; ctx.fillRect(0, 332, WIDTH, 208);
+  ctx.fillStyle = '#bd8d71'; ctx.fillRect(0, 332, WIDTH, 10);
+  for (let i = 0; i < 5; i++) {
+    const x = 96 + i * 192;
+    drawMemoryPerson(ctx, x, 300, people[i], active === i, elapsed);
+    const y = 419, w = 124, h = 82;
+    ctx.save();
+    ctx.shadowColor = active === i ? `${people[i].color}bb` : '#16173577'; ctx.shadowBlur = active === i ? 26 : 8; ctx.shadowOffsetY = 4;
+    rounded(ctx, x - w / 2, y, w, h, 20, active === i ? people[i].color : `${people[i].color}dd`, '#fff8e8', active === i ? 5 : 2);
+    ctx.shadowColor = 'transparent';
+    softText(ctx, people[i].instrument, x, y + 31, 29, '#fff', 'center', 900);
+    softText(ctx, people[i].name, x, y + 63, 12, '#fff', 'center', 900);
+    if (phase === 'input' && i === active) { ctx.fillStyle = '#ffffff55'; ctx.beginPath(); ctx.arc(x + 43, y + 12, 6, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+  }
+  if (phase === 'input') {
+    softText(ctx, `${inputIndex} / ${sequenceLength}`, WIDTH / 2, 390, 14, '#fff5cf', 'center', 900);
+  }
+}
+
+function drawMemoryPerson(ctx, x, floor, person, playing, elapsed) {
+  ctx.save(); ctx.translate(x, floor);
+  const bounce = playing ? Math.sin(elapsed * 24) * 5 : 0;
+  ctx.translate(0, -bounce);
+  // piernas, cuerpo y brazos en pose de concierto
+  ctx.strokeStyle = '#343252'; ctx.lineWidth = 10; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-10, -39); ctx.lineTo(-13, -5); ctx.stroke(); ctx.beginPath(); ctx.moveTo(10, -39); ctx.lineTo(14, -5); ctx.stroke();
+  if (person.kind === 'woman' || person.kind === 'girl') {
+    ctx.fillStyle = person.clothes; ctx.beginPath(); ctx.moveTo(-19, -45); ctx.lineTo(19, -45); ctx.lineTo(27, -4); ctx.lineTo(-27, -4); ctx.closePath(); ctx.fill();
+  } else rounded(ctx, -23, -91, 46, 55, 16, person.clothes, '#fff1d9', 2);
+  ctx.strokeStyle = person.skin; ctx.lineWidth = 9;
+  ctx.beginPath(); ctx.moveTo(-19, -77); ctx.lineTo(-31, -57 + (playing ? -8 : 0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(19, -77); ctx.lineTo(31, -58 + (playing ? 7 : 0)); ctx.stroke();
+  ctx.fillStyle = person.skin; ctx.beginPath(); ctx.arc(0, -110, 24, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = person.hair; ctx.beginPath(); ctx.arc(0, -117, 24, Math.PI, Math.PI * 2); ctx.lineTo(22, -107); ctx.quadraticCurveTo(8, -119, -22, -105); ctx.fill();
+  if (person.kind === 'woman') { ctx.fillStyle = person.hair; ctx.beginPath(); ctx.ellipse(-19, -96, 7, 22, -.1, 0, Math.PI * 2); ctx.ellipse(19, -96, 7, 22, .1, 0, Math.PI * 2); ctx.fill(); }
+  if (person.kind === 'girl') { ctx.fillStyle = person.hair; ctx.beginPath(); ctx.arc(-23, -116, 7, 0, Math.PI * 2); ctx.arc(23, -116, 7, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = '#382e43'; ctx.beginPath(); ctx.arc(-8, -109, 2, 0, Math.PI * 2); ctx.arc(8, -109, 2, 0, Math.PI * 2); ctx.fill();
+  if (person.kind === 'man') { ctx.fillStyle = person.hair; ctx.beginPath(); ctx.ellipse(0, -101, 7, 3, 0, 0, Math.PI); ctx.fill(); }
+  ctx.strokeStyle = '#a95760'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -103, 5, .15, Math.PI - .15); ctx.stroke();
+  softText(ctx, person.instrument, x > 750 ? -38 : 38, -67, 25, '#fff', 'center', 900);
+  ctx.restore();
+}
+
 function createGameMode(id, config, hooks) {
   if (id === 'rooftop') return makeRooftop(config, hooks);
   if (id === 'space') return makeTruck(config, hooks);
   if (id === 'sorting') return makeSorting(config, hooks);
+  if (id === 'memory') return makeMemory(hooks);
   throw new Error(`Modo desconocido: ${id}`);
 }
 

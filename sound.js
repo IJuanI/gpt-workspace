@@ -69,6 +69,15 @@ class SoundKit {
     this.makeTone(frequency, duration, volume, wave, this.context.destination, this.context.currentTime);
   }
 
+  async memoryNote(index) {
+    if (!this.effectsOn) return;
+    await this.unlock();
+    if (!this.context) return;
+    const notes = [392, 494, 587, 659, 784];
+    const waves = ['triangle', 'sine', 'square', 'triangle', 'sine'];
+    this.makeTone(notes[index] || notes[0], .24, .13, waves[index] || 'triangle', this.context.destination, this.context.currentTime);
+  }
+
   makeTone(frequency, duration, volume, wave, destination, startTime) {
     if (!this.context) return;
     const oscillator = this.context.createOscillator();
